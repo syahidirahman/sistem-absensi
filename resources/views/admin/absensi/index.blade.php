@@ -83,7 +83,7 @@
                         <th>Status</th>
                     </tr>
                 </thead>
-                <tbody>
+                                <tbody>
                     @forelse($attendances as $i => $a)
                     <tr>
                         <td>{{ $attendances->firstItem() + $i }}</td>
@@ -92,7 +92,7 @@
                         <td>{{ $a->check_in_time ? $a->check_in_time->format('H:i:s') : '-' }}</td>
                         <td>
                             @if($a->photo_in)
-                                <img src="{{ asset('storage/' . $a->photo_in) }}" width="50" height="50" class="img-thumbnail" style="cursor:pointer; object-fit:cover;" onclick="window.open(this.src)" alt="Foto Check-In">
+                                <img src="{{ asset('storage/' . $a->photo_in) }}" width="50" height="50" class="img-thumbnail" style="cursor:pointer; object-fit:cover;" onclick="window.open(this.src)">
                             @else
                                 -
                             @endif
@@ -100,34 +100,44 @@
                         <td>{{ $a->check_out_time ? $a->check_out_time->format('H:i:s') : '-' }}</td>
                         <td>
                             @if($a->photo_out)
-                                <img src="{{ asset('storage/' . $a->photo_out) }}" width="50" height="50" class="img-thumbnail" style="cursor:pointer; object-fit:cover;" onclick="window.open(this.src)" alt="Foto Check-Out">
+                                <img src="{{ asset('storage/' . $a->photo_out) }}" width="50" height="50" class="img-thumbnail" style="cursor:pointer; object-fit:cover;" onclick="window.open(this.src)">
                             @else
                                 -
                             @endif
                         </td>
                         <td>
-                            @php
-                                $status = 'Hadir';
-                                $badge = 'success';
-                                if ($a->check_in_time && $a->check_in_time->format('H:i:s') > '08:00:00') {
-                                    $status = 'Terlambat';
-                                    $badge = 'warning';
-                                }
-                                if (!$a->check_out_time) {
-                                    $status = 'Belum Check-Out';
-                                    $badge = 'danger';
-                                }
-                                if ($a->check_in_time && $a->check_out_time) {
-                                    $status = 'Selesai';
-                                    $badge = 'success';
-                                }
-                            @endphp
-                            <span class="badge bg-{{ $badge }}">{{ $status }}</span>
+                            @if($a->check_out_time)
+                                <span class="badge bg-success">✅ Selesai</span>
+                            @elseif($a->check_in_time)
+                                <span class="badge bg-warning">⏳ Belum Check-Out</span>
+                            @else
+                                <span class="badge bg-danger">❌ Belum</span>
+                            @endif
+                        </td>
+                        <!-- KOLOM KETERANGAN BARU -->
+                        <td>
+                            @if($a->check_in_time && $setting && $setting->jam_masuk)
+                                @php
+                                    $jamMasuk = \Carbon\Carbon::parse($setting->jam_masuk);
+                                    $toleransi = $setting->toleransi_keterlambatan ?? 0;
+                                    $batasTepatWaktu = $jamMasuk->copy()->addMinutes($toleransi);
+                                    
+                                                                                if ($a->check_in_time->gt($batasTepatWaktu)) {
+                                                // Gunakan abs() agar hasilnya selalu positif
+                                                $selisih = abs(round($a->check_in_time->diffInMinutes($batasTepatWaktu)));
+                                                echo '<span class="badge bg-danger">Terlambat ' . $selisih . ' Menit</span>';
+                                            } else {
+                                                echo '<span class="badge bg-success">Tepat Waktu</span>';
+                                            }
+                                @endphp
+                            @else
+                                -
+                            @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center">Tidak ada data absensi</td>
+                        <td colspan="9" class="text-center">Tidak ada data absensi</td>
                     </tr>
                     @endforelse
                 </tbody>

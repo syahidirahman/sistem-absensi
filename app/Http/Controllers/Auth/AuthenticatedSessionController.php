@@ -11,45 +11,39 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
     public function create(): View
     {
-        // Selalu tampilkan halaman login, tidak peduli session
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // 1. Cek kredensial (Email & Password)
         $request->authenticate();
 
-        $request->session()->regenerate();
+        // 2. Cek role
+        if (Auth::user()->role !== 'admin') {
+            // Jika bukan admin, paksa logout dan hapus session
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
-        // Redirect berdasarkan role
-        $user = Auth::user();
-
-        if ($user->role === 'admin') {
-            return redirect()->intended('/admin/dashboard');
+            // Kembalikan ke halaman login dengan pesan error
+            return redirect('/login')->withErrors([
+                'email' => 'Akses ditolak. Akun ini bukan Admin. Silakan login melalui halaman Login Pegawai.',
+            ]);
         }
 
-        return redirect()->intended('/pegawai/dashboard');
+        // 3. Jika benar admin, masuk dashboard
+        $request->session()->regenerate();
+        return redirect()->intended('/admin/dashboard');
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
-
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
-
         return redirect('/');
     }
 }

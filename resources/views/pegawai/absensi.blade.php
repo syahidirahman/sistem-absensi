@@ -3,286 +3,348 @@
 @section('title', 'Absensi Wajah')
 
 @section('content')
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absensi Wajah</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background: #f4f4f4; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        video { width: 100%; max-width: 400px; border: 2px solid #333; border-radius: 10px; background: #000; }
-        button { padding: 12px 24px; margin: 10px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; }
-        #checkInBtn { background: #28a745; color: white; }
-        #checkOutBtn { background: #dc3545; color: white; }
-        #checkInBtn:disabled, #checkOutBtn:disabled { background: #ccc; cursor: not-allowed; }
-        #status { margin-top: 20px; font-weight: bold; }
-        #location { margin-top: 10px; color: #555; }
-        .info { background: #e9ecef; padding: 10px; border-radius: 5px; margin: 10px 0; }
-        .btn-back { margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📋 Absensi Wajah</h1>
-        <p>Halo, <strong>{{ auth()->user()->name }}</strong></p>
-        <video id="video" autoplay muted></video>   
-        <canvas id="canvas" style="display:none;"></canvas> <!-- hidden canvas for screenshot -->
+<style>
+    .video-container {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        max-width: 450px;
+        margin: 0 auto;
+    }
+    video {
+        width: 100%;
+        border: 3px solid #e2e8f0;
+        border-radius: 15px;
+        background: #000;
+        transform: scaleX(-1); /* Efek cermin */
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    #overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform: scaleX(-1);
+        border-radius: 15px;
+    }
+    .btn-checkin {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        font-weight: bold;
+        border-radius: 10px;
+        padding: 12px 30px;
+        border: none;
+        transition: 0.3s;
+    }
+    .btn-checkout {
+        background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+        color: white;
+        font-weight: bold;
+        border-radius: 10px;
+        padding: 12px 30px;
+        border: none;
+        transition: 0.3s;
+    }
+    .btn-checkin:disabled, .btn-checkout:disabled {
+        background: #cbd5e1;
+        color: #64748b;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    .status-box {
+        border-radius: 10px;
+        padding: 15px;
+        font-weight: bold;
+        font-size: 16px;
+        transition: 0.3s;
+    }
+    .status-waiting { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .status-processing { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .status-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .status-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+</style>
+
+<div class="container py-4">
+    <!-- Header Halaman -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <button id="checkInBtn" {{ $isCheckedIn || $isCheckedOut ? 'disabled' : '' }}>✅ Check-In</button>
-            <button id="checkOutBtn" {{ !$isCheckedIn || $isCheckedOut ? 'disabled' : '' }}>❌ Check-Out</button>
+            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-camera-video-fill text-primary me-2"></i>Presensi Wajah</h3>
+            <p class="text-muted mb-0">Pastikan pencahayaan cukup dan wajah terlihat jelas.</p>
         </div>
-        <div id="status" class="info">⏳ Menyiapkan...</div>
-        <div id="location" class="info">📍 Lokasi: (menunggu)</div>
-        <div class="btn-back">
-            <a href="{{ route('pegawai.dashboard') }}" class="btn btn-secondary">Kembali ke Dashboard</a>
-        </div>
+        <a href="{{ route('pegawai.dashboard') }}" class="btn btn-outline-secondary fw-bold">
+            <i class="bi bi-arrow-left me-1"></i> Kembali ke Dashboard
+        </a>
     </div>
 
-    <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const statusDiv = document.getElementById('status');
-        const locationDiv = document.getElementById('location');
-        const checkInBtn = document.getElementById('checkInBtn');
-        const checkOutBtn = document.getElementById('checkOutBtn');
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+                <div class="card-body text-center p-4">
+                    
+                    <h5 class="fw-bold mb-4">Halo, <span class="text-primary">{{ auth()->user()->name }}</span></h5>
 
-        let currentLocation = null;
-        let currentDescriptor = null;
-        let isVerified = false;
-        let verifyTimeout = null;
-        let isProcessing = false;
-        let photoData = null;
+                    <!-- Kamera -->
+                    <div class="video-container mb-4">
+                        <video id="video" autoplay muted></video>
+                        <canvas id="overlay"></canvas>
+                    </div>
+                    <canvas id="canvas" style="display:none;"></canvas>
 
-        // State dari server
-        let isCheckedIn = {{ $isCheckedIn ? 'true' : 'false' }};
-        let isCheckedOut = {{ $isCheckedOut ? 'true' : 'false' }};
+                    <!-- Tombol Aksi -->
+                    <div class="d-flex justify-content-center gap-3 mb-4">
+                        <button id="checkInBtn" class="btn-checkin" {{ $isCheckedIn || $isCheckedOut ? 'disabled' : '' }}>
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Check-In
+                        </button>
+                        <button id="checkOutBtn" class="btn-checkout" {{ !$isCheckedIn || $isCheckedOut ? 'disabled' : '' }}>
+                            <i class="bi bi-box-arrow-right me-1"></i> Check-Out
+                        </button>
+                    </div>
 
-        // 1. Mulai kamera
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'user',
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
-                    } 
-                });
-                video.srcObject = stream;
-                statusDiv.innerText = '📷 Kamera aktif';
-            } catch (err) {
-                statusDiv.innerText = '❌ Gagal akses kamera: ' + err.message;
-            }
+                    <!-- Status -->
+                    <div id="status" class="status-box status-waiting mb-3">
+                        ⏳ Menyiapkan kamera...
+                    </div>
+
+                    <!-- Lokasi -->
+                    <div class="text-muted small bg-light py-2 rounded">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i> 
+                        Lokasi: <span id="location">(menunggu)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script>
+    const video = document.getElementById('video');
+    const overlay = document.getElementById('overlay');
+    const canvas = document.getElementById('canvas');
+    const statusDiv = document.getElementById('status');
+    const locationDiv = document.getElementById('location');
+    const checkInBtn = document.getElementById('checkInBtn');
+    const checkOutBtn = document.getElementById('checkOutBtn');
+
+    let currentLocation = null;
+    let currentDescriptor = null;
+    let isVerified = false;
+    let isProcessing = false; 
+    let isCheckedIn = {{ $isCheckedIn ? 'true' : 'false' }};
+    let isCheckedOut = {{ $isCheckedOut ? 'true' : 'false' }};
+    const token = '{{ auth()->user()->createToken("web-token")->plainTextToken }}';
+
+    // 1. Mulai Kamera
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+            });
+            video.srcObject = stream;
+            updateStatus('✅ Kamera aktif. Posisikan wajah Anda.', 'waiting');
+        } catch (err) {
+            updateStatus('❌ Gagal akses kamera: ' + err.message, 'error');
         }
-        startCamera();
+    }
+    startCamera();
 
-        // 2. Load model face-api.js
-        async function loadModels() {
-            try {
-                const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
-                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-                statusDiv.innerText = '✅ Model siap';
-            } catch (err) {
-                statusDiv.innerText = '❌ Gagal load model: ' + err.message;
-            }
+    // 2. Load Model
+    async function loadModels() {
+        try {
+            const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+        } catch (err) {
+            console.error('Gagal load model', err);
         }
-        loadModels();
+    }
 
-        // 3. Deteksi wajah + ambil screenshot setiap 500ms
+    // Mulai deteksi setelah model dan video siap
+    Promise.all([loadModels(), new Promise(resolve => video.addEventListener('loadeddata', resolve))]).then(() => {
+        startRealTimeDetection();
+    });
+
+    // 3. Deteksi Wajah Real-Time
+    function startRealTimeDetection() {
+        // Pengaturan ringan dan cepat
+        const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 });
+        const displaySize = { width: video.clientWidth, height: video.clientHeight };
+        faceapi.matchDimensions(overlay, displaySize);
+
         setInterval(async () => {
-            if (video.readyState === 4 && !isProcessing) {
-                try {
-                    const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({
-                        inputSize: 224,
-                        scoreThreshold: 0.5
-                    }))
-                    .withFaceLandmarks()
-                    .withFaceDescriptor();
+            if (video.readyState !== 4 || isProcessing || isCheckedOut) return; 
 
-                    if (detection) {
-                        currentDescriptor = Array.from(detection.descriptor);
+            try {
+                const detection = await faceapi.detectSingleFace(video, options).withFaceLandmarks().withFaceDescriptor();
+                const ctx = overlay.getContext('2d');
+                ctx.clearRect(0, 0, overlay.width, overlay.height);
 
-                        // Ambil screenshot
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        photoData = canvas.toDataURL('image/png');
+                if (detection) {
+                    currentDescriptor = Array.from(detection.descriptor);
+                    
+                    // Gambar kotak deteksi hijau
+                    const resizedDetections = faceapi.resizeResults(detection, displaySize);
+                    faceapi.draw.drawDetections(overlay, resizedDetections);
 
-                        if (verifyTimeout) clearTimeout(verifyTimeout);
-                        verifyTimeout = setTimeout(() => autoVerify(), 500);
-                    } else {
-                        currentDescriptor = null;
-                        photoData = null;
-                        isVerified = false;
-                        statusDiv.innerText = '❌ Arahkan wajah ke kamera';
-                        if (!isCheckedIn && !isCheckedOut) {
-                            checkInBtn.disabled = true;
-                            checkOutBtn.disabled = true;
-                        }
+                    // Kirim ke server untuk verifikasi jika belum terverifikasi
+                    if (!isVerified) {
+                        autoVerify();
                     }
-                } catch (e) {}
-            }
-        }, 500);
+                } else {
+                    currentDescriptor = null;
+                    if (!isVerified) {
+                        updateStatus('❌ Arahkan wajah ke tengah kamera', 'error');
+                        if (!isCheckedIn) checkInBtn.disabled = true;
+                        checkOutBtn.disabled = true;
+                    }
+                }
+            } catch (e) {}
+        }, 500); // Cek setiap 0.5 detik
+    }
 
-        // 4. Auto Verify
-        async function autoVerify() {
-            if (!currentDescriptor || isProcessing) return;
-            isProcessing = true;
-            statusDiv.innerText = '⏳ Memverifikasi wajah...';
+    // 4. Verifikasi ke Server
+    async function autoVerify() {
+        if (!currentDescriptor || isVerified || isProcessing) return;
+        
+        isProcessing = true;
+        updateStatus('⏳ Memverifikasi wajah...', 'processing');
+
+        try {
+            const response = await fetch('/api/attendance/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify({ descriptor: currentDescriptor })
+            });
             
-            try {
-                const response = await fetch('/api/attendance/verify', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token,
-                    },
-                    body: JSON.stringify({ descriptor: currentDescriptor })
-                });
+            const text = await response.text(); 
+            let data = {};
+            try { data = JSON.parse(text); } catch (e) { console.error('Server response:', text); }
 
-                const data = await response.json();
+            if (response.ok && data.valid) {
+                isVerified = true;
+                updateStatus('✅ Wajah terverifikasi!', 'success');
                 
-                if (response.ok && data.valid) {
-                    isVerified = true;
-                    statusDiv.innerText = '✅ Wajah terverifikasi!';
-                    if (!isCheckedIn && !isCheckedOut) {
-                        checkInBtn.disabled = false;
-                        checkOutBtn.disabled = true;
-                    } else if (isCheckedIn && !isCheckedOut) {
-                        checkInBtn.disabled = true;
-                        checkOutBtn.disabled = false;
-                    } else {
-                        checkInBtn.disabled = true;
-                        checkOutBtn.disabled = true;
-                    }
-                } else {
-                    isVerified = false;
-                    statusDiv.innerText = '❌ Wajah tidak dikenali oleh sistem';
-                    checkInBtn.disabled = true;
+                if (!isCheckedIn && !isCheckedOut) {
+                    checkInBtn.disabled = false;
                     checkOutBtn.disabled = true;
+                } else if (isCheckedIn && !isCheckedOut) {
+                    checkInBtn.disabled = true;
+                    checkOutBtn.disabled = false;
                 }
-            } catch (error) {
-                statusDiv.innerText = '❌ Gagal verifikasi: ' + error.message;
-            } finally {
-                isProcessing = false;
-            }
-        }
-
-        // 5. Lokasi GPS
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        currentLocation = {
-                            latitude: pos.coords.latitude,
-                            longitude: pos.coords.longitude
-                        };
-                        locationDiv.innerText = `📍 Lokasi: ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
-                    },
-                    (err) => {
-                        locationDiv.innerText = '❌ Gagal ambil lokasi: ' + err.message;
-                    },
-                    { enableHighAccuracy: false, timeout: 5000 }
-                );
             } else {
-                locationDiv.innerText = '❌ Geolocation tidak didukung';
+                updateStatus('❌ Wajah tidak dikenali', 'error');
+                if (!isCheckedIn) checkInBtn.disabled = true;
+                checkOutBtn.disabled = true;
             }
+        } catch (error) {
+            updateStatus('❌ Gagal koneksi server', 'error');
+        } finally {
+            isProcessing = false; 
         }
-        getLocation();
-        setInterval(getLocation, 10000);
+    }
 
-        // 6. Token
-        const token = '{{ auth()->user()->createToken("web-token")->plainTextToken }}';
+    // 5. GPS
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    currentLocation = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+                    locationDiv.innerText = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+                },
+                (err) => { locationDiv.innerText = 'Gagal ambil lokasi (Izinkan GPS)'; },
+                { enableHighAccuracy: false, timeout: 5000 }
+            );
+        }
+    }
+    getLocation();
+    setInterval(getLocation, 10000);
 
-        // 7. Kirim Check-In/Out (dengan foto)
-        async function sendAttendance(action) {
-            if (isProcessing) return;
-            if (!isVerified) {
-                alert('Wajah belum terverifikasi');
-                return;
-            }
-            if (!currentLocation) {
-                alert('Lokasi belum didapatkan');
-                return;
-            }
-            if (action === 'in' && isCheckedIn) {
-                alert('Anda sudah check-in hari ini');
-                return;
-            }
-            if (action === 'out' && !isCheckedIn) {
-                alert('Anda belum check-in');
-                return;
-            }
+    // 6. Kirim Absensi
+    async function sendAttendance(action) {
+        if (isProcessing) return;
+        if (!isVerified) { alert('Wajah belum terverifikasi'); return; }
+        if (!currentLocation) { alert('Lokasi GPS belum didapatkan'); return; }
 
-            isProcessing = true;
-            statusDiv.innerText = '⏳ Memproses...';
-            checkInBtn.disabled = true;
-            checkOutBtn.disabled = true;
+        isProcessing = true;
+        updateStatus('⏳ Memproses absensi...', 'processing');
+        checkInBtn.disabled = true;
+        checkOutBtn.disabled = true;
 
-            const url = action === 'in' ? '/api/attendance/check-in' : '/api/attendance/check-out';
+        // Ambil foto (format JPEG agar ringan)
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const photoData = canvas.toDataURL('image/jpeg', 0.7); 
 
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token,
-                    },
-                    body: JSON.stringify({
-                        latitude: currentLocation.latitude,
-                        longitude: currentLocation.longitude,
-                        descriptor: currentDescriptor,
-                        photo: photoData // kirim foto base64
-                    })
-                });
+        const url = action === 'in' ? '/api/attendance/check-in' : '/api/attendance/check-out';
 
-                const data = await response.json();
-                
-                if (response.ok) {
-                    statusDiv.innerText = '✅ ' + data.message;
-                    alert(data.message);
-                    if (action === 'in') {
-                        isCheckedIn = true;
-                        checkInBtn.disabled = true;
-                        checkOutBtn.disabled = false;
-                        statusDiv.innerText = '✅ Check-In berhasil, arahkan wajah untuk Check-Out';
-                    } else {
-                        isCheckedOut = true;
-                        checkOutBtn.disabled = true;
-                        alert('Check-out berhasil!');
-                        window.location.href = '{{ route("pegawai.dashboard") }}';
-                    }
-                } else {
-                    alert('Error: ' + (data.message || JSON.stringify(data)));
-                    if (action === 'in') {
-                        checkInBtn.disabled = isCheckedIn;
-                    } else {
-                        checkOutBtn.disabled = !isCheckedIn || isCheckedOut;
-                    }
-                }
-            } catch (error) {
-                alert('Gagal koneksi: ' + error.message);
-                if (action === 'in') {
-                    checkInBtn.disabled = isCheckedIn;
-                } else {
-                    checkOutBtn.disabled = !isCheckedIn || isCheckedOut;
-                }
-            } finally {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify({
+                    latitude: currentLocation.latitude,
+                    longitude: currentLocation.longitude,
+                    descriptor: currentDescriptor,
+                    photo: photoData
+                })
+            });
+
+            const text = await response.text();
+            let data = {};
+            try { data = JSON.parse(text); } catch (e) { 
+                alert('Server Error: ' + text.substring(0, 100)); 
                 isProcessing = false;
+                return;
             }
+            
+            if (response.ok) {
+                alert(data.message);
+                if (action === 'in') {
+                    isCheckedIn = true;
+                    updateStatus('✅ Check-In berhasil. Arahkan wajah untuk Check-Out', 'success');
+                    isVerified = false; 
+                    isProcessing = false;
+                    if (!isCheckedIn) checkInBtn.disabled = true;
+                } else {
+                    isCheckedOut = true;
+                    alert('Check-out berhasil!');
+                    window.location.href = '{{ route("pegawai.dashboard") }}';
+                }
+            } else {
+                alert('Error: ' + (data.message || 'Gagal memproses'));
+                isProcessing = false;
+                if (action === 'in') checkInBtn.disabled = false;
+                else checkOutBtn.disabled = false;
+            }
+        } catch (error) {
+            alert('Gagal koneksi: ' + error.message);
+            isProcessing = false;
+            if (action === 'in') checkInBtn.disabled = false;
+            else checkOutBtn.disabled = false;
         }
+    }
 
-        checkInBtn.addEventListener('click', () => sendAttendance('in'));
-        checkOutBtn.addEventListener('click', () => sendAttendance('out'));
-    </script>
-</body>
-</html>
+    function updateStatus(text, type) {
+        statusDiv.innerText = text;
+        statusDiv.className = `status-box status-${type} mb-3`;
+    }
+
+    checkInBtn.addEventListener('click', () => sendAttendance('in'));
+    checkOutBtn.addEventListener('click', () => sendAttendance('out'));
+</script>
 @endsection

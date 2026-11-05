@@ -22,25 +22,30 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        // Cari user berdasarkan NIP
         $user = User::where('nip', $request->nip)->first();
 
         if (!$user) {
-            return back()->withErrors(['nip' => 'NIP tidak ditemukan']);
+            return back()->withErrors(['nip' => 'NIP tidak ditemukan'])->withInput();
         }
 
-        // Cek password
         if (!Hash::check($request->password, $user->password)) {
-            return back()->withErrors(['password' => 'Password salah']);
+            return back()->withErrors(['password' => 'Password salah'])->withInput();
         }
 
-        // Cek status aktif
+        if ($user->role !== 'pegawai') {
+            return back()->withErrors(['nip' => 'Akses ditolak. Akun ini bukan Pegawai. Silakan login melalui halaman Login Admin.'])->withInput();
+        }
+
         if (!$user->is_active) {
-            return back()->withErrors(['nip' => 'Akun Anda dinonaktifkan. Hubungi admin.']);
+            return back()->withErrors(['nip' => 'Akun Anda dinonaktifkan. Hubungi admin.'])->withInput();
         }
 
-        // Login
-        Auth::login($user);
+        // === LOGIKA REMEMBER ME ===
+        $remember = $request->has('remember'); // Cek apakah checkbox dicentang
+        
+        Auth::login($user, $remember); // Masukkan parameter $remember
+
+        $request->session()->regenerate(); // Amankan session
 
         return redirect()->route('pegawai.dashboard');
     }

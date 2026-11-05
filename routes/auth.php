@@ -7,7 +7,6 @@ use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,32 +18,23 @@ Route::get('/register', function () {
 })->name('register');
 
 // ============================================
-// LOGIN (TANPA MIDDLEWARE GUEST)
+// LOGIN
 // ============================================
 Route::get('/login', [AuthenticatedSessionController::class, 'create'])
-    ->name('login'); // middleware('guest') dihapus
-
-Route::post('/login', [AuthenticatedSessionController::class, 'store'])
     ->name('login');
 
+// HAPUS 'guest' DARI SINI AGAR CONTROLLER BISA BEKERJA
+Route::post('/login', [AuthenticatedSessionController::class, 'store'])
+    ->middleware(['throttle:5,1']); 
+
 // ============================================
-// LOGOUT
+// LOGOUT (Hanya bisa diakses via POST demi keamanan)
 // ============================================
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 // ============================================
-// LOGOUT DARURAT (GET) - untuk testing
-// ============================================
-Route::get('/logout-get', function () {
-    auth()->logout();
-    session()->invalidate();
-    session()->regenerateToken();
-    return redirect('/');
-})->name('logout-get');
-
-// ============================================
-// PASSWORD RESET (jika diperlukan)
+// PASSWORD RESET 
 // ============================================
 Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
     ->middleware('guest')
@@ -63,7 +53,7 @@ Route::post('/reset-password', [NewPasswordController::class, 'store'])
     ->name('password.store');
 
 // ============================================
-// EMAIL VERIFICATION (jika diperlukan)
+// EMAIL VERIFICATION
 // ============================================
 Route::get('/verify-email', [EmailVerificationPromptController::class, '__invoke'])
     ->middleware('auth')

@@ -10,16 +10,16 @@ class Attendance extends Model
     use HasFactory;
 
     protected $fillable = [
-    'user_id',
-    'check_in_time',
-    'check_out_time',
-    'latitude',
-    'longitude',
-    'face_verified',
-    'photo_in',      // <-- TAMBAHKAN
-    'photo_out',     // <-- TAMBAHKAN
-    'photo_path'
-];
+        'user_id',
+        'check_in_time',
+        'check_out_time',
+        'latitude',
+        'longitude',
+        'face_verified',
+        'photo_in',
+        'photo_out',
+        // 'photo_path', <-- SUDAH DIHAPUS KARENA TIDAK DIGUNAKAN
+    ];
 
     protected $casts = [
         'check_in_time' => 'datetime',

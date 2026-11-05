@@ -26,11 +26,39 @@ class DashboardController extends Controller
             }
         }
 
-        $histories = Attendance::where('user_id', $user->id)
-                               ->orderBy('check_in_time', 'desc')
-                               ->limit(7)
-                               ->get();
+        // Ambil data 7 hari terakhir
+        $startDate = now()->subDays(6)->startOfDay();
+        $attendances = Attendance::where('user_id', $user->id)
+                                 ->where('check_in_time', '>=', $startDate)
+                                 ->get()
+                                 ->keyBy(function($item) {
+                                     return $item->check_in_time->toDateString();
+                                 });
 
-        return view('pegawai.dashboard', compact('status', 'histories'));
+        $histories = [];
+        for ($i = 0; $i < 7; $i++) {
+            $date = now()->subDays($i);
+            $dateString = $date->toDateString();
+            
+            if (isset($attendances[$dateString])) {
+                $histories[] = [
+                    'is_alpha' => false,
+                    'date' => $dateString,
+                    'attendance' => $attendances[$dateString]
+                ];
+            } else {
+                // Jika bukan hari Sabtu/Minggu dan tidak ada absen, maka Alpa
+                if ($date->isWeekday()) {
+                    $histories[] = [
+                        'is_alpha' => true,
+                        'date' => $dateString,
+                    ];
+                }
+            }
+        }
+
+        $setting = \App\Models\Setting::first();
+
+        return view('pegawai.dashboard', compact('status', 'histories', 'setting'));
     }
 }

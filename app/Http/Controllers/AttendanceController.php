@@ -14,11 +14,11 @@ use Illuminate\Support\Facades\Storage;
 class AttendanceController extends Controller
 {
     // ============================================
-    // HAVERSINE DISTANCE
+    // HAVERSINE DISTANCE (Menghitung Jarak)
     // ============================================
     private function haversineDistance($lat1, $lon1, $lat2, $lon2)
     {
-        $earthRadius = 6371000;
+        $earthRadius = 6371000; // meter
         $dLat = deg2rad($lat2 - $lat1);
         $dLon = deg2rad($lon2 - $lon1);
         $a = sin($dLat / 2) * sin($dLat / 2) +
@@ -29,7 +29,7 @@ class AttendanceController extends Controller
     }
 
     // ============================================
-    // EUCLIDEAN DISTANCE
+    // EUCLIDEAN DISTANCE (Face Recognition)
     // ============================================
     private function euclideanDistance($a, $b)
     {
@@ -41,7 +41,7 @@ class AttendanceController extends Controller
     }
 
     // ============================================
-    // VERIFY FACE FOR LOGGED IN USER
+    // VERIFIKASI WAJAH (Hanya untuk user login)
     // ============================================
     private function verifyFaceForLoggedInUser($descriptor)
     {
@@ -58,7 +58,7 @@ class AttendanceController extends Controller
         }
 
         $distance = $this->euclideanDistance($descriptor, $faceData->descriptor);
-        $threshold = 0.35;
+        $threshold = 0.45; // Batas toleransi kecocokan wajah
 
         Log::info('Face verification', [
             'user' => $user->name,
@@ -95,28 +95,50 @@ class AttendanceController extends Controller
             return response()->json(['message' => 'Akun tidak aktif'], 403);
         }
 
-        // 2. Cek radius (dari setting atau office)
-        $office = Office::first();
+        // 2. Ambil Pengaturan & Data Kantor
         $setting = Setting::first();
+        $office = Office::first();
 
-        $radius = $setting ? $setting->radius_default : ($office->radius ?? 100);
+        // 3. Validasi Jam Masuk & Jam Pulang
+        if ($setting && $setting->jam_masuk) {
+            $jamMasuk = \Carbon\Carbon::parse($setting->jam_masuk)->format('H:i:s');
+            $jamPulang = \Carbon\Carbon::parse($setting->jam_pulang)->format('H:i:s');
+            $sekarang = now()->format('H:i:s');
+            
+            if ($sekarang < $jamMasuk) {
+                return response()->json([
+                    'message' => "Belum masuk jam kerja. Presensi baru bisa dilakukan mulai pukul " . \Carbon\Carbon::parse($setting->jam_masuk)->format('H:i') . "."
+                ], 403);
+            }
+
+            if ($sekarang > $jamPulang) {
+                return response()->json([
+                    'message' => "Jam kerja sudah berakhir pukul " . \Carbon\Carbon::parse($setting->jam_pulang)->format('H:i') . ". Anda tidak bisa presensi masuk lagi."
+                ], 403);
+            }
+        }
+
+        // 4. Hitung Jarak & Validasi Radius
+        $office_lat = $setting->office_latitude ?? ($office->latitude ?? 0);
+        $office_lng = $setting->office_longitude ?? ($office->longitude ?? 0);
+        $radius = $setting->radius_default ?? ($office->radius ?? 100);
 
         $distance = $this->haversineDistance(
             $request->latitude,
             $request->longitude,
-            $office->latitude ?? 0,
-            $office->longitude ?? 0
+            $office_lat,
+            $office_lng
         );
 
         if ($distance > $radius) {
             return response()->json([
                 'message' => 'Di luar radius kantor',
-                'distance' => $distance,
+                'distance' => round($distance, 2),
                 'radius' => $radius
             ], 403);
         }
 
-        // 3. Cek apakah sudah check-in hari ini
+        // 5. Cek apakah sudah check-in hari ini
         $today = now()->toDateString();
         $existing = Attendance::where('user_id', $user->id)
                               ->whereDate('check_in_time', $today)
@@ -126,18 +148,7 @@ class AttendanceController extends Controller
             return response()->json(['message' => 'Anda sudah check-in hari ini'], 409);
         }
 
-        // 4. Cek keterlambatan
-        $status = 'Hadir';
-        if ($setting) {
-            $jamMasuk = \Carbon\Carbon::createFromFormat('H:i:s', $setting->jam_masuk);
-            $toleransi = $setting->toleransi_keterlambatan;
-            $batasTelat = $jamMasuk->copy()->addMinutes($toleransi);
-            if (now() > $batasTelat) {
-                $status = 'Terlambat';
-            }
-        }
-
-        // 5. Simpan absensi
+        // 6. Simpan ke Database
         $attendance = Attendance::create([
             'user_id' => $user->id,
             'check_in_time' => now(),
@@ -146,20 +157,23 @@ class AttendanceController extends Controller
             'face_verified' => true,
         ]);
 
-        // 6. Simpan foto check-in
+        // 7. Simpan Foto Check-In (Aman dari Error)
         if ($request->photo) {
-            $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $request->photo));
-            $filename = 'checkin_' . $user->id . '_' . time() . '.png';
-            Storage::disk('public')->put('attendance_photos/' . $filename, $imageData);
-            $attendance->photo_in = 'attendance_photos/' . $filename;
-            $attendance->save();
+            try {
+                $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $request->photo));
+                $filename = 'checkin_' . $user->id . '_' . time() . '.jpg';
+                Storage::disk('public')->put('attendance_photos/' . $filename, $imageData);
+                $attendance->photo_in = 'attendance_photos/' . $filename;
+                $attendance->save();
+            } catch (\Exception $e) {
+                \Log::error('Gagal simpan foto in: ' . $e->getMessage());
+            }
         }
 
         return response()->json([
             'message' => 'Check-in berhasil!',
             'attendance' => $attendance,
-            'distance' => $distance,
-            'status' => $status
+            'distance' => round($distance, 2)
         ], 201);
     }
 
@@ -185,7 +199,7 @@ class AttendanceController extends Controller
             return response()->json(['message' => 'Wajah tidak cocok atau belum terdaftar'], 401);
         }
 
-        // 2. Cari absensi hari ini
+        // 2. Cari data check-in hari ini
         $today = now()->toDateString();
         $attendance = Attendance::where('user_id', $user->id)
                                 ->whereDate('check_in_time', $today)
@@ -199,37 +213,43 @@ class AttendanceController extends Controller
             return response()->json(['message' => 'Anda sudah check-out'], 409);
         }
 
-        // 3. Validasi radius (opsional)
-        $office = Office::first();
+        // 3. Validasi Radius Check-Out
         $setting = Setting::first();
-        $radius = $setting ? $setting->radius_default : ($office->radius ?? 100);
+        $office = Office::first();
+        $office_lat = $setting->office_latitude ?? ($office->latitude ?? 0);
+        $office_lng = $setting->office_longitude ?? ($office->longitude ?? 0);
+        $radius = $setting->radius_default ?? ($office->radius ?? 100);
 
         $distance = $this->haversineDistance(
             $request->latitude,
             $request->longitude,
-            $office->latitude ?? 0,
-            $office->longitude ?? 0
+            $office_lat,
+            $office_lng
         );
 
         if ($distance > $radius) {
             return response()->json([
                 'message' => 'Di luar radius untuk check-out',
-                'distance' => $distance,
+                'distance' => round($distance, 2),
                 'radius' => $radius
             ], 403);
         }
 
-        // 4. Simpan check-out
+        // 4. Simpan Waktu Check-Out
         $attendance->check_out_time = now();
         $attendance->save();
 
-        // 5. Simpan foto check-out
+        // 5. Simpan Foto Check-Out (Aman dari Error)
         if ($request->photo) {
-            $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $request->photo));
-            $filename = 'checkout_' . $user->id . '_' . time() . '.png';
-            Storage::disk('public')->put('attendance_photos/' . $filename, $imageData);
-            $attendance->photo_out = 'attendance_photos/' . $filename;
-            $attendance->save();
+            try {
+                $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $request->photo));
+                $filename = 'checkout_' . $user->id . '_' . time() . '.jpg';
+                Storage::disk('public')->put('attendance_photos/' . $filename, $imageData);
+                $attendance->photo_out = 'attendance_photos/' . $filename;
+                $attendance->save();
+            } catch (\Exception $e) {
+                \Log::error('Gagal simpan foto out: ' . $e->getMessage());
+            }
         }
 
         return response()->json([
@@ -239,7 +259,7 @@ class AttendanceController extends Controller
     }
 
     // ============================================
-    // VERIFY (AUTO-VERIFY)
+    // VERIFY WAJAH (Auto-Verify)
     // ============================================
     public function verify(Request $request)
     {

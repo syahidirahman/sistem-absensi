@@ -23,25 +23,29 @@ class SettingController extends Controller
     }
 
     public function update(Request $request)
-    {
-        $request->validate([
-            'jam_masuk' => 'required|date_format:H:i',
-            'jam_pulang' => 'required|date_format:H:i|after:jam_masuk',
-            'toleransi_keterlambatan' => 'required|integer|min:0|max:120',
-            'radius_default' => 'required|integer|min:10|max:10000',
-        ]);
+{
+    $request->validate([
+        'jam_masuk' => 'required|date_format:H:i',
+        'jam_pulang' => 'required|date_format:H:i|after:jam_masuk',
+        'toleransi_keterlambatan' => 'required|integer|min:0|max:120',
+        'radius_default' => 'required|integer|min:10|max:10000',
+        'office_latitude' => 'required|numeric',  // Validasi baru
+        'office_longitude' => 'required|numeric', // Validasi baru
+    ]);
 
-        $setting = Setting::first();
-        if (!$setting) {
-            $setting = new Setting();
-        }
-
-        $setting->jam_masuk = $request->jam_masuk . ':00';
-        $setting->jam_pulang = $request->jam_pulang . ':00';
-        $setting->toleransi_keterlambatan = $request->toleransi_keterlambatan;
-        $setting->radius_default = $request->radius_default;
-        $setting->save();
-
-        return redirect()->route('admin.setting.index')->with('success', 'Pengaturan berhasil disimpan!');
+    $setting = Setting::first();
+    if (!$setting) {
+        $setting = new Setting();
     }
+
+    $setting->jam_masuk = $request->jam_masuk . ':00';
+    $setting->jam_pulang = $request->jam_pulang . ':00';
+    $setting->toleransi_keterlambatan = $request->toleransi_keterlambatan;
+    $setting->radius_default = $request->radius_default;
+    $setting->office_latitude = $request->office_latitude;   // Simpan
+    $setting->office_longitude = $request->office_longitude; // Simpan
+    $setting->save();
+
+    return redirect()->route('admin.setting.index')->with('success', 'Pengaturan berhasil disimpan!');
+}
 }

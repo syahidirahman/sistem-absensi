@@ -30,6 +30,11 @@ class User extends Authenticatable
         return $this->hasMany(Attendance::class);
     }
 
+    public function faceEmbedding()
+    {
+        return $this->hasOne(FaceEmbedding::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
@@ -38,10 +43,5 @@ class User extends Authenticatable
     public function isPegawai(): bool
     {
         return $this->role === 'pegawai';
-    }
-
-    public function faceEmbedding()
-    {
-    return $this->hasOne(FaceEmbedding::class);
     }
 }

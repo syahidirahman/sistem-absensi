@@ -14,10 +14,9 @@ class Setting extends Model
         'jam_pulang',
         'toleransi_keterlambatan',
         'radius_default',
+        'office_latitude',
+        'office_longitude',
     ];
 
-    protected $casts = [
-        'jam_masuk' => 'datetime:H:i',
-        'jam_pulang' => 'datetime:H:i',
-    ];
+    // HAPUS BAGIAN $casts AGAR TIDAK ERROR
 }
