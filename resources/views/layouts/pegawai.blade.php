@@ -12,115 +12,202 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
-        :root {
-            --bawaslu-orange: #f26522;
-            --bawaslu-orange-hover: #d95318;
-            --bawaslu-navy: #0f172a;
-            --bawaslu-dark-blue: #1b263b;
-            --bawaslu-gold: #d49a26;
-            --bawaslu-bg: #f8fafc;
-        }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bawaslu-bg);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+<style>
+    :root {
+        --bawaslu-orange: #f26522;
+        --bawaslu-orange-hover: #d95318;
+        --bawaslu-red: #8d1117;
+        --bawaslu-navy: #1b2636;
+        --bawaslu-dark-blue: #263449;
+        --bawaslu-gold: #d49a26;
+        --bawaslu-bg: #f0f2f5;
+    }
 
-        /* Navbar Utama */
+    * {
+        box-sizing: border-box;
+    }
+
+    html, body {
+        min-height: 100%;
+        margin: 0;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bawaslu-bg);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        color: #172033;
+    }
+
+    /* =========================
+       NAVBAR UTAMA
+    ========================= */
+
+    .navbar-bawaslu {
+        background-color: var(--bawaslu-red) !important;
+        border-bottom: 3px solid var(--bawaslu-orange);
+        box-shadow: none;
+        padding: 12px 0;
+    }
+
+    .navbar-bawaslu .navbar-brand {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #ffffff !important;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0;
+    }
+
+    /* Logo disembunyikan sesuai desain */
+    .navbar-bawaslu .navbar-brand img {
+        display: none !important;
+    }
+
+    .brand-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .brand-title {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #ffffff;
+    }
+
+    .brand-sub {
+        font-size: 11px;
+        color: var(--bawaslu-gold);
+        font-weight: 500;
+    }
+
+    /* =========================
+       MENU NAVIGASI
+    ========================= */
+
+    .navbar-bawaslu .nav-link {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-weight: 500;
+        font-size: 13px;
+        padding: 8px 14px !important;
+        border-radius: 7px;
+        transition: all 0.3s ease;
+    }
+
+    .navbar-bawaslu .nav-link:hover {
+        color: #ffffff !important;
+        background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Menu aktif */
+    .navbar-bawaslu .nav-link.active {
+        color: #ffffff !important;
+        background-color: #263449 !important;
+    }
+
+    /* =========================
+       TOMBOL LOGOUT
+    ========================= */
+
+    .btn-logout {
+        background: transparent;
+        color: #ffffff !important;
+        border: 1px solid #570b10;
+        border-radius: 7px;
+        padding: 6px 15px !important;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-logout:hover {
+        background: #6f0d13 !important;
+        color: #ffffff !important;
+        border-color: #570b10;
+    }
+
+    /* =========================
+       ALERT NOTIFIKASI
+    ========================= */
+
+    .custom-alert {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    /* =========================
+       KONTEN UTAMA
+       Mengikuti ukuran Bootstrap
+       Tidak menggunakan max-width 1000px
+    ========================= */
+
+    body > .container.my-4 {
+        flex: 1 0 auto;
+        width: 100%;
+        margin-top: 20px !important;
+        margin-bottom: 20px !important;
+    }
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    .footer-bawaslu {
+        margin-top: auto;
+        background-color: transparent;
+        border-top: 0;
+        padding: 20px 0;
+        font-size: 11px;
+        color: #718096;
+    }
+
+    .footer-bawaslu strong {
+        color: #34445c;
+        font-weight: 700;
+    }
+
+    /* =========================
+       RESPONSIVE MOBILE
+    ========================= */
+
+    @media (max-width: 767.98px) {
+
         .navbar-bawaslu {
-            background-color: var(--bawaslu-navy) !important;
-            border-bottom: 4px solid var(--bawaslu-orange);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-            padding: 12px 0;
+            padding: 10px 0;
         }
 
-        .navbar-bawaslu .navbar-brand {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #ffffff !important;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .navbar-bawaslu .navbar-nav {
+            align-items: stretch !important;
         }
 
-        .navbar-bawaslu .navbar-brand img {
-            height: 40px;
-            width: auto;
-        }
-
-        .brand-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.2;
-        }
-
-        .brand-title {
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .brand-sub {
-            font-size: 11px;
-            color: var(--bawaslu-gold);
-            font-weight: 500;
-        }
-
-        /* Menu Navigasi */
         .navbar-bawaslu .nav-link {
-            color: rgba(255, 255, 255, 0.85) !important;
-            font-weight: 500;
-            font-size: 14px;
-            padding: 8px 16px !important;
-            border-radius: 8px;
-            transition: all 0.3s ease;
+            padding: 10px 12px !important;
         }
 
-        .navbar-bawaslu .nav-link:hover,
-        .navbar-bawaslu .nav-link.active {
-            color: #ffffff !important;
-            background-color: rgba(242, 101, 34, 0.2);
-        }
-
-        /* Tombol Logout */
         .btn-logout {
-            background: rgba(220, 38, 38, 0.15);
-            color: #f87171 !important;
-            border: 1px solid rgba(220, 38, 38, 0.3);
-            border-radius: 8px;
-            padding: 6px 16px !important;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            width: 100%;
+            text-align: left;
         }
 
-        .btn-logout:hover {
-            background: #dc2626 !important;
-            color: #ffffff !important;
-            border-color: #dc2626;
+        body > .container.my-4 {
+            padding-left: 15px;
+            padding-right: 15px;
         }
 
-        /* Alert Notifikasi */
-        .custom-alert {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Footer */
         .footer-bawaslu {
-            margin-top: auto;
-            background-color: #ffffff;
-            border-top: 1px solid #e2e8f0;
-            padding: 20px 0;
-            font-size: 13px;
-            color: #64748b;
+            font-size: 10px;
+            padding: 15px 0;
         }
-    </style>
+    }
+</style>
+
 </head>
 <body>
 

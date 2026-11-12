@@ -8,9 +8,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
         .sidebar {
-            min-height: 100vh;
-            background: #2c3e50;
-            padding-top: 20px;
+        min-height: 100vh;
+        height: 100vh;
+        background: #8d1117;
+        padding-top: 20px;
         }
         .sidebar .nav-link {
             color: #ecf0f1;
@@ -20,11 +21,12 @@
             transition: all 0.3s;
         }
         .sidebar .nav-link:hover {
-            background: #34495e;
+            background: #700d13;
             color: #fff;
         }
+
         .sidebar .nav-link.active {
-            background: #3498db;
+            background: #3b82f6;
             color: #fff;
         }
         .sidebar .nav-link i {
@@ -123,6 +125,47 @@
             border-radius: 50%;
             object-fit: cover;
         }
+        /* =========================
+   TOMBOL LOGOUT SIDEBAR
+========================= */
+
+.sidebar nav form {
+    margin-top: 20px;
+    padding: 0 12px;
+}
+
+.sidebar nav form .nav-link {
+    width: 100%;
+    margin: 0;
+    padding: 11px 15px;
+
+    background-color: #a91d27 !important;
+    color: #ffffff !important;
+
+    border: 1px solid #ff7777 !important;
+    border-radius: 7px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    text-align: left;
+    opacity: 1 !important;
+
+    transition: all 0.3s ease;
+}
+
+.sidebar nav form .nav-link i {
+    color: #ffffff !important;
+    margin-right: 10px;
+}
+
+.sidebar nav form .nav-link:hover {
+    background-color: #dc3545 !important;
+    border-color: #ff9999 !important;
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
     </style>
 </head>
 <body>

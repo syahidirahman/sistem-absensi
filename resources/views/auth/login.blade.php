@@ -17,48 +17,67 @@
     <!-- CSS DARI ANDA -->
     <style>
         :root {
-            --navy: #82651f;
-            --blue: #E62129;
-            --paper: #fbf5f5;
-            --ink: #34361c;
-            --muted: #34361c;
-            --line: #82651f;
+            --navy: #921318;
+            --blue: #e62129;
+            --paper: #ffffff;
+            --ink: #273142;
+            --muted: #697386;
+            --line: #dce1e8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
         }
 
         body {
+            min-height: 100vh;
             font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
             color: var(--ink);
             background: #fff;
         }
 
+        /* LAYOUT UTAMA */
         .login-shell {
+            width: 100%;
             min-height: 100vh;
+            height: 100vh;
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            grid-template-columns: 1fr 1fr;
+            overflow: hidden;
+            background: #fff;
         }
 
-        /* ---------- Panel kiri: identitas ---------- */
+        /* PANEL KIRI */
         .brand-panel {
             position: relative;
+            isolation: isolate;
+            min-width: 0;
+            min-height: 100vh;
             overflow: hidden;
-            color: #fff;
-            padding: 3rem 3.5rem;
             display: flex;
             flex-direction: column;
-            background-color: var(--navy);
-            background-image:
-                radial-gradient(90% 70% at 0% 0%, rgba(255, 255, 255, .10), transparent 55%),
-                radial-gradient(120% 80% at 100% 100%, rgba(0, 0, 0, .35), transparent 60%);
+            padding: 5.2vh 5vw;
+            color: #fff;
+            background: #921318;
         }
 
+        /* Pola geometris */
         .brand-panel::before {
             content: '';
             position: absolute;
+            z-index: -1;
             inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='90' viewBox='0 0 52 90'%3E%3Cpath d='M26 0V15L52 30V60L26 75V90M26 15L0 30V60L26 75' fill='none' stroke='%23ffffff' stroke-opacity='.2'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='90' viewBox='0 0 52 90'%3E%3Cpath d='M26 0V15L52 30V60L26 75V90M26 15L0 30V60L26 75' fill='none' stroke='%23ffffff' stroke-opacity='.18'/%3E%3C/svg%3E");
             background-size: 78px 135px;
-            -webkit-mask-image: radial-gradient(circle at 50% 62%, #000 0%, transparent 62%);
-            mask-image: radial-gradient(circle at 50% 62%, #000 0%, transparent 62%);
+            -webkit-mask-image: radial-gradient(circle at 12% 10%, #000 0%, transparent 62%);
+            mask-image: radial-gradient(circle at 12% 10%, #000 0%, transparent 62%);
             pointer-events: none;
         }
 
@@ -67,221 +86,342 @@
             z-index: 1;
         }
 
+        /* Judul Bawaslu */
+        .brand-title {
+            margin: 0;
+            color: #fff;
+            font-size: clamp(1.5rem, 2.2vw, 2rem);
+            font-weight: 700;
+            line-height: 1.12;
+            letter-spacing: -.035em;
+        }
+
         .brand-title::after {
             content: '';
             display: block;
-            width: 56px;
-            height: 4px;
+            width: 42px;
+            height: 3px;
+            margin-top: .75rem;
             border-radius: 2px;
-            background: #E62129;
-            margin-top: 1rem;
+            background: #e62129;
         }
 
-        .brand-title {
-            font-size: clamp(1.75rem, 3vw, 2.6rem);
-            font-weight: 700;
-            line-height: 1.15;
-            letter-spacing: -0.01em;
-            margin: 0;
-        }
-
+        /* Logo */
         .logo-stage {
             flex: 1;
+            min-height: 0;
             display: grid;
             place-items: center;
         }
 
         .logo-tile {
-            width: min(320px, 72%);
+            width: min(40%, 310px);
+            min-width: 190px;
             aspect-ratio: 1;
-            background: #fff;
-            border-radius: 20px;
             display: grid;
             place-items: center;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 1.8rem;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
         }
 
         .logo-tile img {
+            display: block;
+            width: 100%;
+            height: 100%;
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
         }
 
-        /* ---------- Panel kanan: form ---------- */
+        /* PANEL KANAN */
         .form-panel {
-            background: var(--paper);
+            min-width: 0;
+            min-height: 100vh;
             display: grid;
             place-items: center;
-            padding: 2rem 1.25rem;
-        }
-
-        .login-card {
-            width: 100%;
-            max-width: 440px;
+            padding: 5vh 4vw;
             background: #fff;
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 2.25rem 2rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
         }
 
         .login-wrap {
             width: 100%;
-            max-width: 440px;
+            max-width: 520px;
         }
 
+        /* Sembunyikan link kembali */
         .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: .45rem;
-            margin-bottom: .9rem;
-            padding: .25rem .1rem;
-            color: var(--ink);
-            font-size: .9rem;
-            font-weight: 500;
-            text-decoration: none;
-            border-radius: .35rem;
+            display: none;
         }
 
-        .back-link i { transition: transform .15s ease; }
-        .back-link:hover { color: var(--navy); text-decoration: underline; text-underline-offset: 3px; }
-        .back-link:hover i { transform: translateX(-3px); }
+        /* CARD LOGIN */
+        .login-card {
+            width: 100%;
+            max-width: 520px;
+            padding: clamp(2rem, 3vw, 3rem);
+            border: 1px solid #e1e4e9;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 8px 25px rgba(20, 30, 45, .045);
+        }
 
         .login-card h1 {
-            font-size: 1.6rem;
+            margin: 0 0 .45rem;
+            color: #273142;
+            font-size: clamp(1.35rem, 1.7vw, 1.65rem);
             font-weight: 700;
+            line-height: 1.3;
             text-align: center;
-            margin: 0 0 .35rem;
         }
 
         .login-card .lead-text {
-            color: var(--muted);
+            margin: 0 0 1.65rem;
+            color: #697386;
+            font-size: .78rem;
+            line-height: 1.5;
             text-align: center;
-            margin: 0 0 1.25rem;
-            font-size: 0.95rem;
         }
 
         .login-card hr {
-            border-color: var(--line);
-            opacity: 0.3;
             margin: 0 0 1.5rem;
+            border-color: var(--line);
+            opacity: .5;
         }
 
+        /* LABEL */
         .form-label {
-            font-weight: 600;
-            font-size: .9rem;
-            margin-bottom: .4rem;
+            display: block;
+            margin-bottom: .45rem;
+            color: #273142;
+            font-size: .76rem;
+            font-weight: 700;
         }
 
+        /* INPUT */
         .input-group {
-            border-radius: .5rem;
+            flex-wrap: nowrap;
+            border-radius: 7px;
             transition: box-shadow .15s ease;
         }
 
         .input-group:focus-within {
-            box-shadow: 0 0 0 .2rem #e621276d;
+            box-shadow: 0 0 0 .2rem rgba(230, 33, 41, .10);
         }
 
         .input-group .input-group-text,
         .input-group .form-control,
         .input-group .btn-toggle {
+            min-height: 43px;
+            padding: .65rem .75rem;
             border-color: var(--line);
-            padding-top: .65rem;
-            padding-bottom: .65rem;
+            font-size: .78rem;
         }
 
         .input-group .input-group-text {
+            color: #7b8493;
             background: #fff;
-            color: var(--muted);
+        }
+
+        .input-group .form-control {
+            min-width: 0;
+            color: #273142;
+            background: #fff;
+        }
+
+        .input-group .form-control::placeholder {
+            color: #9aa3b2;
+            opacity: 1;
+        }
+
+        /* Border merah input NIP */
+        .login-card form > .mb-3:first-of-type .input-group .input-group-text,
+        .login-card form > .mb-3:first-of-type .input-group .form-control {
+            border-color: #ff777d;
         }
 
         .input-group .form-control:focus {
+            border-color: #e62129;
             box-shadow: none;
-            border-color: var(--line);
         }
 
+        /* TOMBOL LIHAT PASSWORD */
         .btn-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 43px;
+            color: #8993a3;
             background: #fff;
-            color: var(--muted);
             border: 1px solid var(--line);
+            border-left: 0;
+            cursor: pointer;
         }
 
-        .btn-toggle:hover, .btn-toggle:focus-visible {
-            background: #fff;
-            color: var(--ink);
+        .btn-toggle:hover,
+        .btn-toggle:focus-visible {
+            color: #273142;
+            background: #f8f9fb;
         }
 
+        /* INGAT SAYA */
+        .form-check {
+            min-height: auto;
+            margin-bottom: 1.25rem !important;
+            padding-left: 1.5rem;
+        }
+
+        .form-check-input {
+            width: .9rem;
+            height: .9rem;
+            margin-top: .15rem;
+            margin-left: -1.5rem;
+            border-color: #cbd2dc;
+        }
+
+        .form-check-input:checked {
+            border-color: #e62129;
+            background-color: #e62129;
+        }
+
+        .form-check-label {
+            color: #778091 !important;
+            font-size: .72rem !important;
+            line-height: 1.4;
+        }
+
+        /* TOMBOL MASUK */
         .btn-masuk {
-            --bs-btn-bg: var(--blue);
-            --bs-btn-border-color: var(--blue);
-            --bs-btn-hover-bg: #9b191d;
-            --bs-btn-hover-border-color: #430808;
-            --bs-btn-active-bg: #6d1316;
-            --bs-btn-active-border-color: #360606;
-            --bs-btn-disabled-bg: var(--blue);
-            --bs-btn-disabled-border-color: var(--blue);
-            --bs-btn-focus-shadow-rgb: 91, 11, 11;
-            font-weight: 600;
+            --bs-btn-bg: #e62129;
+            --bs-btn-border-color: #e62129;
+            --bs-btn-hover-bg: #c91b22;
+            --bs-btn-hover-border-color: #c91b22;
+            --bs-btn-active-bg: #ad171d;
+            --bs-btn-active-border-color: #ad171d;
+            --bs-btn-disabled-bg: #e62129;
+            --bs-btn-disabled-border-color: #e62129;
+            --bs-btn-focus-shadow-rgb: 230, 33, 41;
+
+            min-height: 43px;
             padding: .7rem 1rem;
-            color: white;
+            border-radius: 7px;
+            color: #fff;
+            font-size: .78rem;
+            font-weight: 600;
         }
 
+        /* PEMISAH */
         .divider-atau {
             display: flex;
             align-items: center;
             gap: .75rem;
-            color: var(--muted);
-            font-size: .85rem;
-            margin: 1.25rem 0;
+            margin: 1.1rem 0;
+            color: #9aa2af;
+            font-size: .72rem;
         }
 
-        .divider-atau::before, .divider-atau::after {
+        .divider-atau::before,
+        .divider-atau::after {
             content: '';
             flex: 1;
             height: 1px;
-            background: var(--line);
-            opacity: 0.3;
+            background: #e5e8ed;
         }
 
+        /* TOMBOL ADMIN */
         .btn-admin {
-            border-color: var(--line);
-            color: var(--ink);
-            font-weight: 500;
+            min-height: 43px;
             padding: .65rem 1rem;
+            border-color: var(--line);
+            border-radius: 7px;
+            color: #273142;
+            font-size: .76rem;
+            font-weight: 500;
         }
 
         .btn-admin:hover {
-            background: var(--paper);
-            border-color: var(--muted);
-            color: var(--ink);
+            border-color: #c5ccd7;
+            color: #202938;
+            background: #f7f8fa;
         }
 
-        /* ---------- Layar kecil ---------- */
-        @media (max-width: 991.98px) {
+        .text-danger.small {
+            font-size: .75rem;
+        }
+
+        /* RESPONSIVE TABLET DAN HP */
+        @media (max-width: 767.98px) {
+
             .login-shell {
+                min-height: 100vh;
+                height: auto;
                 grid-template-columns: 1fr;
                 grid-template-rows: auto 1fr;
             }
 
             .brand-panel {
+                min-height: 24vh;
                 flex-direction: row;
                 align-items: center;
-                gap: 1rem;
-                padding: 1.25rem;
+                gap: 1.25rem;
+                padding: 1.25rem 1.5rem;
             }
 
-            .brand-title { font-size: 1.25rem; }
-            .brand-title::after { width: 40px; height: 3px; margin-top: .6rem; }
-            
-            .logo-stage { flex: 0 0 auto; order: -1; }
-            .logo-tile { width: 64px; border-radius: 14px; padding: .6rem; }
+            .brand-title {
+                font-size: 1.35rem;
+            }
+
+            .brand-title::after {
+                width: 36px;
+                margin-top: .55rem;
+            }
+
+            .logo-stage {
+                flex: 0 0 auto;
+                order: -1;
+            }
+
+            .logo-tile {
+                width: 88px;
+                min-width: 88px;
+                padding: .65rem;
+                border-radius: 12px;
+            }
 
             .form-panel {
-                align-items: start;
-                padding-top: 1.5rem;
+                min-height: 76vh;
+                padding: 2.5rem 1.25rem;
             }
-            .login-card { padding: 1.75rem 1.25rem; }
+
+            .login-wrap,
+            .login-card {
+                max-width: 440px;
+            }
+
+            .login-card {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+
+            .brand-panel {
+                padding: 1rem;
+                gap: .9rem;
+            }
+
+            .brand-title {
+                font-size: 1.1rem;
+            }
+
+            .logo-tile {
+                width: 72px;
+                min-width: 72px;
+            }
+
+            .login-card {
+                padding: 1.5rem 1.1rem;
+            }
         }
     </style>
 </head>

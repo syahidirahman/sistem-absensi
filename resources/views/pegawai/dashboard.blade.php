@@ -3,138 +3,267 @@
 @section('title', 'Dashboard Pegawai - BAWASLU')
 
 @section('content')
+
 <style>
     :root {
-        --bawaslu-orange: #f26522;
-        --bawaslu-red: #d9381e;
-        --bawaslu-gold: #d49a26;
-        --bawaslu-navy: #0f172a;
-        --bawaslu-dark-blue: #1b263b;
+        --bawaslu-orange: #f4511e;
+        --bawaslu-red: #8d1117;
+        --bawaslu-gold: #b98212;
+        --bawaslu-navy: #1b2636;
+        --bawaslu-dark-blue: #263449;
+        --bawaslu-muted: #718096;
+        --bawaslu-page: #f0f2f5;
     }
 
-    /* Banner Selamat Datang Tema Bawaslu */
+    /* Background halaman */
+    body {
+        background-color: var(--bawaslu-page);
+        color: #172033;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* Banner selamat datang */
     .bawaslu-banner {
-        background: linear-gradient(135deg, var(--bawaslu-navy) 0%, var(--bawaslu-dark-blue) 100%);
-        border-radius: 16px;
-        color: #ffffff;
+        background: #8d1117;
+        border: none;
+        border-left: 6px solid var(--bawaslu-orange);
+        border-radius: 10px;
+        color: #fff;
         position: relative;
         overflow: hidden;
-        border-left: 6px solid var(--bawaslu-orange);
-        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
+        box-shadow: 0 2px 5px rgba(15, 23, 42, .08);
+        min-height: 126px;
+        padding: 24px !important;
     }
 
     .bawaslu-banner::after {
-        content: "";
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(242, 101, 34, 0.15) 0%, transparent 70%);
-        pointer-events: none;
+        content: none;
     }
 
+    .bawaslu-banner h2 {
+        color: #fff;
+        font-size: 23px;
+        font-weight: 700;
+        margin-bottom: 5px !important;
+    }
+
+    .bawaslu-banner p {
+        color: #c7cbd2 !important;
+        font-size: 12px !important;
+    }
+
+    /* Badge Bawaslu */
     .badge-bawaslu-gold {
-        background-color: var(--bawaslu-gold);
-        color: #ffffff;
-        font-weight: 600;
-        letter-spacing: 1px;
-        font-size: 11px;
-        padding: 5px 12px;
+        display: inline-block;
+        background: #b98212;
+        color: #fff;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .35px;
+        line-height: 1.2;
+        padding: 4px 11px;
         border-radius: 20px;
     }
 
-    /* Card Custom */
+    /* Card */
     .card-bawaslu {
-        border: none;
-        border-radius: 14px;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-        background: #ffffff;
+        background: #fff;
+        border: 0;
+        border-radius: 11px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
+        overflow: hidden;
+    }
+
+    .card-bawaslu .card-body {
+        padding: 22px !important;
     }
 
     .card-bawaslu-header {
-        background: transparent;
-        border-bottom: 2px solid #f1f5f9;
-        padding: 18px 24px;
+        background: #fff;
+        border-bottom: 1px solid #e8edf3;
+        padding: 4px 20px !important;
+        min-height: 25px;
     }
 
-    /* Tombol Aksi Khas Bawaslu */
+    .card-bawaslu-header h5 {
+        color: #263449 !important;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    /* Tombol presensi masuk */
     .btn-bawaslu-masuk {
-        background: linear-gradient(135deg, var(--bawaslu-orange) 0%, var(--bawaslu-red) 100%);
-        color: #ffffff;
-        border: none;
-        border-radius: 10px;
+        background: #f4511e;
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        font-size: 13px;
         font-weight: 600;
-        padding: 10px 24px;
-        box-shadow: 0 4px 15px rgba(242, 101, 34, 0.3);
-        transition: all 0.3s ease;
+        padding: 9px 17px;
+        box-shadow: none;
+        transition: background-color .2s ease, transform .2s ease;
     }
 
     .btn-bawaslu-masuk:hover {
-        background: linear-gradient(135deg, var(--bawaslu-red) 0%, #b82a14 100%);
-        color: #ffffff;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(242, 101, 34, 0.4);
+        background: #df4215;
+        color: #fff;
+        transform: translateY(-1px);
     }
 
+    /* Tombol presensi pulang */
     .btn-bawaslu-pulang {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        color: #ffffff;
-        border: none;
-        border-radius: 10px;
+        background: #b98212;
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        font-size: 13px;
         font-weight: 600;
-        padding: 10px 24px;
-        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-        transition: all 0.3s ease;
+        padding: 9px 17px;
+        box-shadow: none;
+        transition: background-color .2s ease, transform .2s ease;
     }
 
     .btn-bawaslu-pulang:hover {
-        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-        color: #ffffff;
-        transform: translateY(-2px);
+        background: #98690d;
+        color: #fff;
+        transform: translateY(-1px);
     }
 
-    /* Status Box */
+    /* Status kehadiran */
     .status-bawaslu-box {
-        border-left: 4px solid var(--bawaslu-orange);
-        background-color: #fff8f5;
-        border-radius: 12px;
-        padding: 18px 22px;
+        background: #fff;
+        border-left: 5px solid var(--bawaslu-orange);
+        border-radius: 9px;
+        padding: 18px 15px !important;
+        min-height: 86px;
     }
 
-    /* Tabel Riwayat */
-    .table-bawaslu th {
-        background-color: var(--bawaslu-navy);
-        color: #ffffff;
-        font-weight: 600;
-        font-size: 13px;
+    .status-bawaslu-box .rounded-circle {
+        width: 43px;
+        height: 43px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 !important;
+        border: 1px solid #ffd1b8;
+        background: #fffaf7 !important;
+        box-shadow: none !important;
+    }
+
+    .status-bawaslu-box .rounded-circle i {
+        font-size: 19px !important;
+    }
+
+    .status-bawaslu-box h5 {
+        color: #172033 !important;
+        font-size: 21px;
+        font-weight: 700;
+    }
+
+    .status-bawaslu-box .text-muted {
+        color: #8293ad !important;
+        font-size: 10px;
+        letter-spacing: .45px;
+    }
+
+    /* Tabel riwayat presensi */
+    .table-bawaslu {
+        margin-bottom: 0;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-bawaslu thead th {
+        background: #1b2636;
+        color: #fff;
+        border: 0;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .35px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border: none;
+        padding: 10px 12px;
+        white-space: nowrap;
     }
 
-    .table-bawaslu td {
-        vertical-align: middle;
+    .table-bawaslu tbody td {
+        background: #fff;
         color: #334155;
-        font-size: 14px;
+        border-top: 1px solid #edf0f4;
+        font-size: 12px;
+        padding: 10px 12px;
+        vertical-align: middle;
+    }
+
+    .table-bawaslu tbody tr {
+        height: 45px;
+    }
+
+    .table-bawaslu tbody tr:hover td {
+        background: #fafbfc;
+    }
+
+    /* Badge status */
+    .table-bawaslu .badge,
+    .badge-selesai,
+    .badge-belum {
+        display: inline-block;
+        border: 0;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.2;
+        padding: 5px 11px;
     }
 
     .badge-selesai {
-        background-color: #dcfce7;
-        color: #15803d;
-        border: 1px solid #bbf7d0;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: 600;
+        background: #d9f9e7;
+        color: #168044;
     }
 
     .badge-belum {
-        background-color: #fef3c7;
-        color: #b45309;
-        border: 1px solid #fde68a;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: 600;
+        background: #fff1cc;
+        color: #a86b00;
+    }
+
+    .table-bawaslu .badge.bg-danger {
+        background: #e93649 !important;
+        color: #fff !important;
+    }
+
+    .table-bawaslu .badge.bg-success {
+        background: #148342 !important;
+        color: #fff !important;
+    }
+
+    .table-bawaslu .badge.bg-light {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        border: 1px solid #e5eaf0 !important;
+    }
+
+    /* Responsive mobile */
+    @media (max-width: 767.98px) {
+        .bawaslu-banner {
+            padding: 20px !important;
+        }
+
+        .bawaslu-banner h2 {
+            font-size: 20px;
+        }
+
+        .status-bawaslu-box {
+            align-items: flex-start !important;
+        }
+
+        .card-bawaslu-header {
+            padding: 10px 14px !important;
+        }
+
+        .table-bawaslu thead th,
+        .table-bawaslu tbody td {
+            padding-left: 9px;
+            padding-right: 9px;
+        }
     }
 </style>
 
